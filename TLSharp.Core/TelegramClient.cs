@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 using TeleSharp.TL.Account;
 using TeleSharp.TL.Auth;
+using TeleSharp.TL.Channels;
 using TeleSharp.TL.Contacts;
 using TeleSharp.TL.Help;
 using TeleSharp.TL.Messages;
@@ -284,17 +285,33 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        public async Task<TLUser> UpdateUsernameAsync(string username, CancellationToken token = default(CancellationToken))
+        public async Task<TLUser> AccountUpdateUsernameAsync(string username, CancellationToken token = default(CancellationToken))
         {
-            var req = new TLRequestUpdateUsername { Username = username };
+            var req = new TeleSharp.TL.Account.TLRequestUpdateUsername { Username = username };
 
             return await SendAuthenticatedRequestAsync<TLUser>(req, token)
                 .ConfigureAwait(false);
         }
 
-        public async Task<bool> CheckUsernameAsync(string username, CancellationToken token = default(CancellationToken))
+        public async Task<TLUser> ChannelsDeleteMessageAsync(TLAbsInputChannel peer, TLVector<int> messageId, CancellationToken token = default(CancellationToken))
         {
-            var req = new TLRequestCheckUsername { Username = username };
+            var req = new TeleSharp.TL.Channels.TLRequestDeleteMessages {  Channel = peer, Id = messageId };
+
+            return await SendAuthenticatedRequestAsync<TLUser>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<TeleSharp.TL.Channels.TLChannelParticipant> ChannelsGetParticipant(TLAbsInputChannel channel, TLAbsInputUser user, CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Channels.TLRequestGetParticipant { Channel = channel, UserId = user };
+
+            return await SendAuthenticatedRequestAsync<TeleSharp.TL.Channels.TLChannelParticipant>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<bool> AccountCheckUsernameAsync(string username, CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Account.TLRequestCheckUsername { Username = username };
 
             return await SendAuthenticatedRequestAsync<bool>(req, token)
                 .ConfigureAwait(false);
@@ -309,6 +326,21 @@ namespace TLSharp.Core
 
             return await SendAuthenticatedRequestAsync<TLResolvedPeer>(req, token)
                 .ConfigureAwait(false);
+        }
+
+        public async Task<TLAbsUpdates> SendMessageReactionAsync(TLAbsInputPeer peer, int messageId, string emoji, CancellationToken token = default(CancellationToken))
+        {
+            try
+            {
+                var req = new TeleSharp.TL.TL.Messages.TLSendMessageReaction() { Msg_Id = messageId, Flags = 0, ReactionEmoji = emoji, Peer = peer };
+
+                return await SendAuthenticatedRequestAsync<TLAbsUpdates>(req, token)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<TLImportedContacts> ImportContactsAsync(IReadOnlyList<TLInputPhoneContact> contacts, CancellationToken token = default(CancellationToken))
@@ -433,7 +465,8 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        public async Task<TLAbsMessages> GetHistoryAsync(TLAbsInputPeer peer, int offsetId = 0, int offsetDate = 0, int addOffset = 0, int limit = 100, int maxId = 0, int minId = 0, CancellationToken token = default(CancellationToken))
+        public async Task<TLAbsMessages> GetHistoryAsync(TLAbsInputPeer peer, int offsetId = 0, int offsetDate = 0, 
+            int addOffset = 0, int limit = 100, int maxId = 0, int minId = 0, CancellationToken token = default(CancellationToken))
         {
             var req = new TLRequestGetHistory()
             {
@@ -447,6 +480,43 @@ namespace TLSharp.Core
             };
             return await SendAuthenticatedRequestAsync<TLAbsMessages>(req, token)
                 .ConfigureAwait(false);
+        }
+
+        public async Task<TLAbsUpdates> Messages_CreateChat(string title, TLVector<TLAbsInputUser> membersToInvite,
+            CancellationToken token = default(CancellationToken))
+        {
+            var req = new TLRequestCreateChat()
+            {
+                 Title = title,
+                 Users = membersToInvite
+            };
+            
+            return await SendAuthenticatedRequestAsync<TLAbsUpdates>(req, token)
+                .ConfigureAwait(false);
+        }
+        
+        public async Task<TLAuthorization> AuthImportBotAuthorization(string tokenBot,  
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var req = new TLRequestImportBotAuthorization()
+            {
+                ApiHash = this.apiHash,
+                ApiId =  this.apiId,
+                BotAuthToken =  tokenBot
+            };
+            
+            await RequestWithDcMigration(req, cancellationToken).ConfigureAwait(false);
+
+            var response = req.Response;
+            var user = response?.User;
+            if (user == null)
+                return null;
+
+            if (!(user is TLUser user2)) 
+                return null;
+            
+            OnUserAuthenticated(user2);
+            return req.Response;
         }
 
         /// <summary>

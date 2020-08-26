@@ -312,6 +312,7 @@
     <Compile Include="TL\Messages\TLRequestUploadMedia.cs" />
     <Compile Include="TL\Messages\TLSavedGifs.cs" />
     <Compile Include="TL\Messages\TLSavedGifsNotModified.cs" />
+    <Compile Include="TL\Messages\TLSendMessageReaction.cs" />
     <Compile Include="TL\Messages\TLSentEncryptedFile.cs" />
     <Compile Include="TL\Messages\TLSentEncryptedMessage.cs" />
     <Compile Include="TL\Messages\TLStickers.cs" />
