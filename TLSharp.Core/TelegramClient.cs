@@ -416,6 +416,20 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
+        public async Task<TLAbsUpdates> Messages_SendMedia(TLAbsInputPeer peer, TLAbsInputMedia media,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await SendAuthenticatedRequestAsync<TLAbsUpdates>(new TLRequestSendMedia()
+                {
+                    RandomId = Helpers.GenerateRandomLong(),
+                    Background = false,
+                    ClearDraft = false,
+                    Media = media,
+                    Peer = peer
+                }, token)
+                .ConfigureAwait(false);
+        }
+        
         public async Task<TLAbsUpdates> SendUploadedPhoto(TLAbsInputPeer peer, TLAbsInputFile file, string caption, CancellationToken token = default(CancellationToken))
         {
             return await SendAuthenticatedRequestAsync<TLAbsUpdates>(new TLRequestSendMedia()
