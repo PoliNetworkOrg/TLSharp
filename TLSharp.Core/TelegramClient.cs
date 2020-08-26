@@ -375,14 +375,16 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        public async Task<TLAbsUpdates> SendMessageAsync(TLAbsInputPeer peer, string message, CancellationToken token = default(CancellationToken))
+        public async Task<TLAbsUpdates> SendMessageAsync(TLAbsInputPeer peer, string message,
+             CancellationToken token = default(CancellationToken), TLAbsReplyMarkup replyMarkup = null)
         {
             return await SendAuthenticatedRequestAsync<TLAbsUpdates>(
                     new TLRequestSendMessage()
                     {
                         Peer = peer,
                         Message = message,
-                        RandomId = Helpers.GenerateRandomLong()
+                        RandomId = Helpers.GenerateRandomLong(), 
+                        ReplyMarkup = replyMarkup
                     }, token)
                 .ConfigureAwait(false);
         }
