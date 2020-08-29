@@ -7,41 +7,38 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Contacts
 {
-	[TLObject(-353862078)]
+    [TLObject(1871416498)]
     public class TLContacts : TLAbsContacts
     {
         public override int Constructor
         {
             get
             {
-                return -353862078;
+                return 1871416498;
             }
         }
 
-             public TLVector<TLContact> Contacts {get;set;}
-     public int SavedCount {get;set;}
-     public TLVector<TLAbsUser> Users {get;set;}
+        public TLVector<TLContact> Contacts { get; set; }
+        public TLVector<TLAbsUser> Users { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
             Contacts = (TLVector<TLContact>)ObjectUtils.DeserializeVector<TLContact>(br);
-SavedCount = br.ReadInt32();
-Users = (TLVector<TLAbsUser>)ObjectUtils.DeserializeVector<TLAbsUser>(br);
+            Users = (TLVector<TLAbsUser>)ObjectUtils.DeserializeVector<TLAbsUser>(br);
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            ObjectUtils.SerializeObject(Contacts,bw);
-bw.Write(SavedCount);
-ObjectUtils.SerializeObject(Users,bw);
+            bw.Write(Constructor);
+            ObjectUtils.SerializeObject(Contacts, bw);
+            ObjectUtils.SerializeObject(Users, bw);
 
         }
     }

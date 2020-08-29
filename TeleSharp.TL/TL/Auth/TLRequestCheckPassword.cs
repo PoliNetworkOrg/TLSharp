@@ -7,42 +7,42 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Auth
 {
-	[TLObject(-779399914)]
+    [TLObject(174260510)]
     public class TLRequestCheckPassword : TLMethod
     {
         public override int Constructor
         {
             get
             {
-                return -779399914;
+                return 174260510;
             }
         }
 
-                public TLAbsInputCheckPasswordSRP Password {get;set;}
-        public Auth.TLAbsAuthorization Response{ get; set;}
+        public byte[] PasswordHash { get; set; }
+        public Auth.TLAuthorization Response { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
-            Password = (TLAbsInputCheckPasswordSRP)ObjectUtils.DeserializeObject(br);
+            PasswordHash = BytesUtil.Deserialize(br);
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            ObjectUtils.SerializeObject(Password,bw);
+            bw.Write(Constructor);
+            BytesUtil.Serialize(PasswordHash, bw);
 
         }
-		public override void DeserializeResponse(BinaryReader br)
-		{
-			Response = (Auth.TLAbsAuthorization)ObjectUtils.DeserializeObject(br);
+        public override void DeserializeResponse(BinaryReader br)
+        {
+            Response = (Auth.TLAuthorization)ObjectUtils.DeserializeObject(br);
 
-		}
+        }
     }
 }

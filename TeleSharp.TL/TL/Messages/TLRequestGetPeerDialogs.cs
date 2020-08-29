@@ -7,42 +7,42 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Messages
 {
-	[TLObject(-462373635)]
+    [TLObject(764901049)]
     public class TLRequestGetPeerDialogs : TLMethod
     {
         public override int Constructor
         {
             get
             {
-                return -462373635;
+                return 764901049;
             }
         }
 
-                public TLVector<TLAbsInputDialogPeer> Peers {get;set;}
-        public Messages.TLPeerDialogs Response{ get; set;}
+        public TLVector<TLAbsInputPeer> Peers { get; set; }
+        public Messages.TLPeerDialogs Response { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
-            Peers = (TLVector<TLAbsInputDialogPeer>)ObjectUtils.DeserializeVector<TLAbsInputDialogPeer>(br);
+            Peers = (TLVector<TLAbsInputPeer>)ObjectUtils.DeserializeVector<TLAbsInputPeer>(br);
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            ObjectUtils.SerializeObject(Peers,bw);
+            bw.Write(Constructor);
+            ObjectUtils.SerializeObject(Peers, bw);
 
         }
-		public override void DeserializeResponse(BinaryReader br)
-		{
-			Response = (Messages.TLPeerDialogs)ObjectUtils.DeserializeObject(br);
+        public override void DeserializeResponse(BinaryReader br)
+        {
+            Response = (Messages.TLPeerDialogs)ObjectUtils.DeserializeObject(br);
 
-		}
+        }
     }
 }
