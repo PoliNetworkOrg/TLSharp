@@ -8,7 +8,7 @@ using TeleSharp.TL;
 namespace TeleSharp.TL
 {
 	[TLObject(-1059185703)]
-    public class TLJsonObjectValue : TLObject
+    public class TLJSONObjectValue : TLObject
     {
         public override int Constructor
         {

@@ -18,8 +18,8 @@ namespace TeleSharp.TL
             }
         }
 
-             public FileLocation PhotoSmall {get;set;}
-     public FileLocation PhotoBig {get;set;}
+             public TLFileLocationToBeDeprecated PhotoSmall {get;set;}
+     public TLFileLocationToBeDeprecated PhotoBig {get;set;}
      public int DcId {get;set;}
 
 
@@ -30,8 +30,8 @@ namespace TeleSharp.TL
 
         public override void DeserializeBody(BinaryReader br)
         {
-            PhotoSmall = (FileLocation)ObjectUtils.DeserializeObject(br);
-PhotoBig = (FileLocation)ObjectUtils.DeserializeObject(br);
+            PhotoSmall = (TLFileLocationToBeDeprecated)ObjectUtils.DeserializeObject(br);
+PhotoBig = (TLFileLocationToBeDeprecated)ObjectUtils.DeserializeObject(br);
 DcId = br.ReadInt32();
 
         }
