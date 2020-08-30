@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Messages
 {
-	[TLObject(-1986437075)]
+    [TLObject(-1986437075)]
     public class TLRequestClearRecentStickers : TLMethod
     {
         public override int Constructor
@@ -18,34 +18,37 @@ namespace TeleSharp.TL.Messages
             }
         }
 
-                public int Flags {get;set;}
-        public bool Attached {get;set;}
-        public bool Response{ get; set;}
+        public int Flags { get; set; }
+        public bool Attached { get; set; }
+        public bool Response { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+            Flags = 0;
+            Flags = Attached ? (Flags | 1) : (Flags & ~1);
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
             Flags = br.ReadInt32();
-Attached = (Flags & 1) != 0;
+            Attached = (Flags & 1) != 0;
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
+            bw.Write(Constructor);
+            ComputeFlags();
             bw.Write(Flags);
 
 
         }
-		public override void DeserializeResponse(BinaryReader br)
-		{
-			Response = BoolUtil.Deserialize(br);
+        public override void DeserializeResponse(BinaryReader br)
+        {
+            Response = BoolUtil.Deserialize(br);
 
-		}
+        }
     }
 }

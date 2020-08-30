@@ -7,42 +7,39 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Account
 {
-	[TLObject(-1430579357)]
+    [TLObject(-1068696894)]
     public class TLRequestGetWallPapers : TLMethod
     {
         public override int Constructor
         {
             get
             {
-                return -1430579357;
+                return -1068696894;
             }
         }
 
-                public int Hash {get;set;}
-        public Account.TLAbsWallPapers Response{ get; set;}
+        public TLVector<TLAbsWallPaper> Response { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
-            Hash = br.ReadInt32();
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            bw.Write(Hash);
+            bw.Write(Constructor);
 
         }
-		public override void DeserializeResponse(BinaryReader br)
-		{
-			Response = (Account.TLAbsWallPapers)ObjectUtils.DeserializeObject(br);
+        public override void DeserializeResponse(BinaryReader br)
+        {
+            Response = (TLVector<TLAbsWallPaper>)ObjectUtils.DeserializeVector<TLAbsWallPaper>(br);
 
-		}
+        }
     }
 }

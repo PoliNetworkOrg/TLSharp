@@ -7,44 +7,41 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL
 {
-	[TLObject(-1160743548)]
+    [TLObject(1125058340)]
     public class TLInputDocumentFileLocation : TLAbsInputFileLocation
     {
         public override int Constructor
         {
             get
             {
-                return -1160743548;
+                return 1125058340;
             }
         }
 
-             public long Id {get;set;}
-     public long AccessHash {get;set;}
-     public byte[] FileReference {get;set;}
-     public string ThumbSize {get;set;}
+        public long Id { get; set; }
+        public long AccessHash { get; set; }
+        public int Version { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
             Id = br.ReadInt64();
-AccessHash = br.ReadInt64();
-FileReference = BytesUtil.Deserialize(br);
-ThumbSize = StringUtil.Deserialize(br);
+            AccessHash = br.ReadInt64();
+            Version = br.ReadInt32();
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
+            bw.Write(Constructor);
             bw.Write(Id);
-bw.Write(AccessHash);
-BytesUtil.Serialize(FileReference,bw);
-StringUtil.Serialize(ThumbSize,bw);
+            bw.Write(AccessHash);
+            bw.Write(Version);
 
         }
     }

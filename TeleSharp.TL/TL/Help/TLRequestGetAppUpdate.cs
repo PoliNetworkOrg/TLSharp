@@ -7,42 +7,39 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL.Help
 {
-	[TLObject(1378703997)]
+    [TLObject(-1372724842)]
     public class TLRequestGetAppUpdate : TLMethod
     {
         public override int Constructor
         {
             get
             {
-                return 1378703997;
+                return -1372724842;
             }
         }
 
-                public string Source {get;set;}
-        public Help.TLAbsAppUpdate Response{ get; set;}
+        public Help.TLAbsAppUpdate Response { get; set; }
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
-            Source = StringUtil.Deserialize(br);
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            StringUtil.Serialize(Source,bw);
+            bw.Write(Constructor);
 
         }
-		public override void DeserializeResponse(BinaryReader br)
-		{
-			Response = (Help.TLAbsAppUpdate)ObjectUtils.DeserializeObject(br);
+        public override void DeserializeResponse(BinaryReader br)
+        {
+            Response = (Help.TLAbsAppUpdate)ObjectUtils.DeserializeObject(br);
 
-		}
+        }
     }
 }
