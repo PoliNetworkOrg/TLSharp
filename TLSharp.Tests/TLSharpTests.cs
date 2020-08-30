@@ -265,7 +265,8 @@ namespace TLSharp.Tests
                 new TLInputDocumentFileLocation()
                 {
                     AccessHash = document.AccessHash,
-                    Id = document.Id
+                    Id = document.Id,
+                    Version = document.Version
                 },
                 document.Size);
             
@@ -285,11 +286,12 @@ namespace TLSharp.Tests
                 .FirstOrDefault(x => x.Id == 5880094);
     
             var photo = ((TLUserProfilePhoto)user.Photo);
-            var photoLocation = (TLFileLocationToBeDeprecated) photo.PhotoBig;
+            var photoLocation = (TLFileLocation) photo.PhotoBig;
 
             var resFile = await client.GetFile(new TLInputFileLocation()
             {
                 LocalId = photoLocation.LocalId,
+                Secret = photoLocation.Secret,
                 VolumeId = photoLocation.VolumeId
             }, 1024);
 
@@ -304,8 +306,9 @@ namespace TLSharp.Tests
             await client.ConnectAsync();
 
             var hash = await client.SendCodeRequestAsync(NotRegisteredNumberToSignUp);
-           
-            var registeredUser = await client.SignUpAsync(NotRegisteredNumberToSignUp, hash, "TLSharp", "User");
+            var code = "";
+
+            var registeredUser = await client.SignUpAsync(NotRegisteredNumberToSignUp, hash, code, "TLSharp", "User");
             Assert.IsNotNull(registeredUser);
             Assert.IsTrue(client.IsUserAuthorized());
 
@@ -313,7 +316,6 @@ namespace TLSharp.Tests
             Assert.IsNotNull(loggedInUser);
         }
 
-        /*
         public virtual async Task CheckPhones()
         {
             var client = NewClient();
@@ -322,9 +324,7 @@ namespace TLSharp.Tests
             var result = await client.IsPhoneRegisteredAsync(NumberToAuthenticate);
             Assert.IsTrue(result);
         }
-        */
 
-        /*
         public virtual async Task FloodExceptionShouldNotCauseCannotReadPackageLengthError()
         {
             for (int i = 0; i < 50; i++)
@@ -340,7 +340,6 @@ namespace TLSharp.Tests
                 }
             }
         }
-        */
 
         public virtual async Task SendMessageByUserNameTest()
         {

@@ -66,12 +66,10 @@ namespace TLSharp.Core
             this.dcIpVersion = dcIpVersion;
 
             session = Session.TryLoadOrCreateNew(store, sessionUserId);
-            
-            if (session != null)
-                transport = new TcpTransport (session.DataCenter.Address, session.DataCenter.Port, this.handler);
+            transport = new TcpTransport (session.DataCenter.Address, session.DataCenter.Port, this.handler);
         }
 
-        public async Task<bool> ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
+        public async Task ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
         {
             token.ThrowIfCancellationRequested();
 
@@ -93,26 +91,13 @@ namespace TLSharp.Core
                 DeviceModel = "PC",
                 LangCode = "en",
                 Query = config,
-                SystemVersion = "Win 10.0",
-                SystemLangCode = "en",
-                LangPack =  "android"
+                SystemVersion = "Win 10.0"
             };
+            var invokewithLayer = new TLRequestInvokeWithLayer() { Layer = 66, Query = request };
+            await sender.Send(invokewithLayer, token).ConfigureAwait(false);
+            await sender.Receive(invokewithLayer, token).ConfigureAwait(false);
 
-            var invokewithLayer = new TLRequestInvokeWithLayer() {Layer = 113, Query = request};
-            try
-            {
-                
-                await sender.Send(invokewithLayer, token).ConfigureAwait(false);
-                await sender.Receive(invokewithLayer, token).ConfigureAwait(false);
-
-                dcOptions = ((TLConfig) invokewithLayer.Response).DcOptions.ToList();
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
+            dcOptions = ((TLConfig)invokewithLayer.Response).DcOptions.ToList();
         }
 
         private async Task ReconnectToDcAsync(int dcId, CancellationToken token = default(CancellationToken))
@@ -199,7 +184,6 @@ namespace TLSharp.Core
             return session.TLUser != null;
         }
 
-        /*
         public async Task<bool> IsPhoneRegisteredAsync(string phoneNumber, CancellationToken token = default(CancellationToken))
         {
             if (String.IsNullOrWhiteSpace(phoneNumber))
@@ -212,8 +196,6 @@ namespace TLSharp.Core
             return authCheckPhoneRequest.Response.PhoneRegistered;
         }
 
-*/
-        
         public async Task<string> SendCodeRequestAsync(string phoneNumber, CancellationToken token = default(CancellationToken))
         {
             if (String.IsNullOrWhiteSpace(phoneNumber))
@@ -228,28 +210,22 @@ namespace TLSharp.Core
 
         public async Task<TLUser> MakeAuthAsync(string phoneNumber, string phoneCodeHash, string code, CancellationToken token = default(CancellationToken))
         {
-            if (string.IsNullOrWhiteSpace(phoneNumber))
+            if (String.IsNullOrWhiteSpace(phoneNumber))
                 throw new ArgumentNullException(nameof(phoneNumber));
 
-            if (string.IsNullOrWhiteSpace(phoneCodeHash))
+            if (String.IsNullOrWhiteSpace(phoneCodeHash))
                 throw new ArgumentNullException(nameof(phoneCodeHash));
 
-            if (string.IsNullOrWhiteSpace(code))
+            if (String.IsNullOrWhiteSpace(code))
                 throw new ArgumentNullException(nameof(code));
             
             var request = new TLRequestSignIn() { PhoneNumber = phoneNumber, PhoneCodeHash = phoneCodeHash, PhoneCode = code };
 
             await RequestWithDcMigration(request, token).ConfigureAwait(false);
 
-            var r =  request.Response;
-            if (!(r is TLAuthorization r2))
-                return null;
-            var r3 = r2.User;
-            if (!(r3 is TLUser r4))
-                return null;
-            
-            OnUserAuthenticated(r4);
-            return (r4);
+            OnUserAuthenticated(((TLUser)request.Response.User));
+
+            return ((TLUser)request.Response.User);
         }
         
         public async Task<TLPassword> GetPasswordSetting(CancellationToken token = default(CancellationToken))
@@ -265,123 +241,30 @@ namespace TLSharp.Core
         {
             token.ThrowIfCancellationRequested();
 
-            byte[] M1Bytes = CalcM1(password, password_str);
-            byte[] Abytes = CalcA(password, password_str);
-
-            if (password.SrpId == null)
-                return null;
-            
-            TLAbsInputCheckPasswordSRP password2 = new TLInputCheckPasswordSRP() { SrpId =  password.SrpId.Value, A = Abytes, M1 = M1Bytes};
-            var request = new TLRequestCheckPassword() { Password = password2 };
-
-            await RequestWithDcMigration(request, token).ConfigureAwait(false);
-
-            var r = request.Response;
-            if (r == null)
-                return null;
-
-            if (r is TLAuthorization r2)
-            {
-                var r3 = r2.User;
-                if (r3 == null)
-                    return null;
-
-                if (r3 is TLUser r4)
-                {
-                    OnUserAuthenticated(r4);
-
-                    return r4;
-                }
-            }
-
-            return null;
-        }
-
-        private byte[] CalcA(TLPassword password, string passwordStr)
-        {
-            var securealgo = password.NewSecureAlgo;
-            if (securealgo is TLSecurePasswordKdfAlgoSHA512 a)
-            {
-                return CalcA1(password, passwordStr, a);
-            }
-            else if (securealgo is TLSecurePasswordKdfAlgoPBKDF2HMACSHA512iter100000 b)
-            {
-                return CalcA2(password, passwordStr, b);
-            }
-            else if (securealgo is TLSecurePasswordKdfAlgoUnknown c)
-            {
-                return CalcA3(password, passwordStr, c);
-            }
-            
-                
-            
-            /*
-             *
-             *             byte[] password_Bytes = Encoding.UTF8.GetBytes(password_str);
+            byte[] password_Bytes = Encoding.UTF8.GetBytes(password_str);
             IEnumerable<byte> rv = password.CurrentSalt.Concat(password_Bytes).Concat(password.CurrentSalt);
 
             SHA256Managed hashstring = new SHA256Managed();
             var password_hash = hashstring.ComputeHash(rv.ToArray());
-             */
 
-            return null;
+            var request = new TLRequestCheckPassword() { PasswordHash = password_hash };
+
+            await RequestWithDcMigration(request, token).ConfigureAwait(false);
+
+            OnUserAuthenticated((TLUser)request.Response.User);
+
+            return (TLUser)request.Response.User;
         }
 
-        private byte[] CalcA3(TLPassword password, string passwordStr, TLSecurePasswordKdfAlgoUnknown securePasswordKdfAlgoUnknown)
+        public async Task<TLUser> SignUpAsync(string phoneNumber, string phoneCodeHash, string code, string firstName, string lastName, CancellationToken token = default(CancellationToken))
         {
-            throw new NotImplementedException();
-        }
-
-        private byte[] CalcA2(TLPassword password, string passwordStr, TLSecurePasswordKdfAlgoPBKDF2HMACSHA512iter100000 securePasswordKdfAlgoPbkdf2Hmacsha512Iter100000)
-        {
-            throw new NotImplementedException();
-        }
-
-        private byte[] CalcA1(TLPassword password, string passwordStr, TLSecurePasswordKdfAlgoSHA512 securePasswordKdfAlgoSha512)
-        {
-            
-            return null;
-        }
-
-        private byte[] CalcM1(TLPassword password, string passwordStr)
-        {
-            /*
-             *            byte[] password_Bytes = Encoding.UTF8.GetBytes(password_str);
-            IEnumerable<byte> rv = password.CurrentSalt.Concat(password_Bytes).Concat(password.CurrentSalt);
-
-            SHA256Managed hashstring = new SHA256Managed();
-            var password_hash = hashstring.ComputeHash(rv.ToArray());
-             * 
-             */
-
-            return null;
-        }
-
-        public async Task<TLUser> SignUpAsync(string phoneNumber, string phoneCodeHash, string firstName, string lastName, CancellationToken token = default(CancellationToken))
-        {
-            var request = new TLRequestSignUp() { PhoneNumber = phoneNumber, PhoneCodeHash = phoneCodeHash, FirstName = firstName, LastName = lastName };
+            var request = new TLRequestSignUp() { PhoneNumber = phoneNumber, PhoneCode = code, PhoneCodeHash = phoneCodeHash, FirstName = firstName, LastName = lastName };
             
             await RequestWithDcMigration(request, token).ConfigureAwait(false);
 
-            var r = request.Response;
-            if (r == null)
-                return null;
+            OnUserAuthenticated((TLUser)request.Response.User);
 
-            if (r is TLAuthorization r2)
-            {
-                var r3 = r2.User;
-                if (r3 == null)
-                    return null;
-
-                if (r3 is TLUser r4)
-                {
-                    OnUserAuthenticated(r4);
-
-                    return r4;
-                }
-            }
-
-            return null;
+            return (TLUser)request.Response.User;
         }
 
         public async Task<T> SendRequestAsync<T>(TLMethod methodToExecute, CancellationToken token = default(CancellationToken))
@@ -445,7 +328,6 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        /*
         public async Task<TLAbsUpdates> SendMessageReactionAsync(TLAbsInputPeer peer, int messageId, string emoji, CancellationToken token = default(CancellationToken))
         {
             try
@@ -460,7 +342,6 @@ namespace TLSharp.Core
                 return null;
             }
         }
-        */
 
         public async Task<TLImportedContacts> ImportContactsAsync(IReadOnlyList<TLInputPhoneContact> contacts, CancellationToken token = default(CancellationToken))
         {
@@ -478,7 +359,6 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        /*
         public async Task<TLLink> DeleteContactAsync(TLAbsInputUser user, CancellationToken token = default(CancellationToken))
         {
             var req = new TLRequestDeleteContact {Id = user};
@@ -486,9 +366,7 @@ namespace TLSharp.Core
             return await SendAuthenticatedRequestAsync<TLLink>(req, token)
                 .ConfigureAwait(false);
         }
-        */
-        
-        /*
+
         public async Task<TLContacts> GetContactsAsync(CancellationToken token = default(CancellationToken))
         {
             var req = new TLRequestGetContacts() { Hash = "" };
@@ -496,7 +374,6 @@ namespace TLSharp.Core
             return await SendAuthenticatedRequestAsync<TLContacts>(req, token)
                 .ConfigureAwait(false);
         }
-        */
 
         public async Task<TLAbsUpdates> SendMessageAsync(TLAbsInputPeer peer, string message,
              CancellationToken token = default(CancellationToken), TLAbsReplyMarkup replyMarkup = null)
@@ -553,21 +430,21 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
         
-        public async Task<TLAbsUpdates> SendUploadedPhoto(TLAbsInputPeer peer, TLAbsInputFile file, CancellationToken token = default(CancellationToken))
+        public async Task<TLAbsUpdates> SendUploadedPhoto(TLAbsInputPeer peer, TLAbsInputFile file, string caption, CancellationToken token = default(CancellationToken))
         {
             return await SendAuthenticatedRequestAsync<TLAbsUpdates>(new TLRequestSendMedia()
                 {
                     RandomId = Helpers.GenerateRandomLong(),
                     Background = false,
                     ClearDraft = false,
-                    Media = new TLInputMediaUploadedPhoto() { File = file },
+                    Media = new TLInputMediaUploadedPhoto() { File = file, Caption = caption },
                     Peer = peer
                 }, token)
                 .ConfigureAwait(false);
         }
 
         public async Task<TLAbsUpdates> SendUploadedDocument(
-            TLAbsInputPeer peer, TLAbsInputFile file, string mimeType, TLVector<TLAbsDocumentAttribute> attributes, CancellationToken token = default(CancellationToken))
+            TLAbsInputPeer peer, TLAbsInputFile file, string caption, string mimeType, TLVector<TLAbsDocumentAttribute> attributes, CancellationToken token = default(CancellationToken))
         {
             return await SendAuthenticatedRequestAsync<TLAbsUpdates>(new TLRequestSendMedia()
                 {
@@ -577,6 +454,7 @@ namespace TLSharp.Core
                     Media = new TLInputMediaUploadedDocument()
                     {
                         File = file,
+                        Caption = caption,
                         MimeType = mimeType,
                         Attributes = attributes
                     },
@@ -646,24 +524,15 @@ namespace TLSharp.Core
             await RequestWithDcMigration(req, cancellationToken).ConfigureAwait(false);
 
             var response = req.Response;
-            if (response == null)
+            var user = response?.User;
+            if (user == null)
                 return null;
 
-            if (response is TLAuthorization r2)
-            {
-                var user = r2.User;
-                if (user == null)
-                    return null;
-
-                if (!(user is TLUser user2)) 
-                    return null;
+            if (!(user is TLUser user2)) 
+                return null;
             
-                OnUserAuthenticated(user2);
-                return r2;
-            }
-
-            return null;
-
+            OnUserAuthenticated(user2);
+            return req.Response;
         }
 
         /// <summary>

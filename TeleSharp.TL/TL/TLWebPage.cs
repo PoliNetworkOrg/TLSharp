@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TeleSharp.TL;
-using TeleSharp.TL.TL;
-
 namespace TeleSharp.TL
 {
     [TLObject(1594340540)]

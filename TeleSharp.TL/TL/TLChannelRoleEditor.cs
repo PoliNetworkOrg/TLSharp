@@ -7,38 +7,32 @@ using System.Threading.Tasks;
 using TeleSharp.TL;
 namespace TeleSharp.TL
 {
-	[TLObject(-1059185703)]
-    public class TLJSONObjectValue : TLObject
+    [TLObject(-2113143156)]
+    public class TLChannelRoleEditor : TLAbsChannelParticipantRole
     {
         public override int Constructor
         {
             get
             {
-                return -1059185703;
+                return -2113143156;
             }
         }
 
-             public string Key {get;set;}
-     public TLAbsJSONValue Value {get;set;}
 
 
-		public void ComputeFlags()
-		{
-			
-		}
+        public void ComputeFlags()
+        {
+
+        }
 
         public override void DeserializeBody(BinaryReader br)
         {
-            Key = StringUtil.Deserialize(br);
-Value = (TLAbsJSONValue)ObjectUtils.DeserializeObject(br);
 
         }
 
         public override void SerializeBody(BinaryWriter bw)
         {
-			bw.Write(Constructor);
-            StringUtil.Serialize(Key,bw);
-ObjectUtils.SerializeObject(Value,bw);
+            bw.Write(Constructor);
 
         }
     }
