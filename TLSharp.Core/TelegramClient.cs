@@ -66,10 +66,12 @@ namespace TLSharp.Core
             this.dcIpVersion = dcIpVersion;
 
             session = Session.TryLoadOrCreateNew(store, sessionUserId);
-            transport = new TcpTransport (session.DataCenter.Address, session.DataCenter.Port, this.handler);
+            
+            if (session != null)
+                transport = new TcpTransport (session.DataCenter.Address, session.DataCenter.Port, this.handler);
         }
 
-        public async Task ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
+        public async Task<bool> ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
         {
             token.ThrowIfCancellationRequested();
 
@@ -91,13 +93,26 @@ namespace TLSharp.Core
                 DeviceModel = "PC",
                 LangCode = "en",
                 Query = config,
-                SystemVersion = "Win 10.0"
+                SystemVersion = "Win 10.0",
+                SystemLangCode = "en",
+                LangPack =  "android"
             };
-            var invokewithLayer = new TLRequestInvokeWithLayer() { Layer = 66, Query = request };
-            await sender.Send(invokewithLayer, token).ConfigureAwait(false);
-            await sender.Receive(invokewithLayer, token).ConfigureAwait(false);
 
-            dcOptions = ((TLConfig)invokewithLayer.Response).DcOptions.ToList();
+            var invokewithLayer = new TLRequestInvokeWithLayer() {Layer = 113, Query = request};
+            try
+            {
+                
+                await sender.Send(invokewithLayer, token).ConfigureAwait(false);
+                await sender.Receive(invokewithLayer, token).ConfigureAwait(false);
+
+                dcOptions = ((TLConfig) invokewithLayer.Response).DcOptions.ToList();
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private async Task ReconnectToDcAsync(int dcId, CancellationToken token = default(CancellationToken))

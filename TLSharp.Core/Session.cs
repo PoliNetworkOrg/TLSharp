@@ -52,7 +52,14 @@ namespace TLSharp.Core
                 var buffer = new byte[2048];
                 stream.Read(buffer, 0, 2048);
 
-                return Session.FromBytes(buffer, this, sessionUserId);
+                try
+                {
+                    return Session.FromBytes(buffer, this, sessionUserId);
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
     }
