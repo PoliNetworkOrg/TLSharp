@@ -125,6 +125,7 @@
     <Compile Include="TL\Channels\TLRequestDeleteUserHistory.cs" />
     <Compile Include="TL\Channels\TLRequestEditAbout.cs" />
     <Compile Include="TL\Channels\TLRequestEditAdmin.cs" />
+    <Compile Include="TL\Channels\TLRequestEditAdmin113.cs" />
     <Compile Include="TL\Channels\TLRequestEditPhoto.cs" />
     <Compile Include="TL\Channels\TLRequestEditTitle.cs" />
     <Compile Include="TL\Channels\TLRequestExportInvite.cs" />
@@ -475,6 +476,7 @@
     <Compile Include="TL\TLChannelRoleEmpty.cs" />
     <Compile Include="TL\TLChannelRoleModerator.cs" />
     <Compile Include="TL\TLChat.cs" />
+    <Compile Include="TL\TLChatAdminRights.cs" />
     <Compile Include="TL\TLChatEmpty.cs" />
     <Compile Include="TL\TLChatForbidden.cs" />
     <Compile Include="TL\TLChatFull.cs" />

@@ -66,7 +66,7 @@ namespace TLSharp.Core
             this.dcIpVersion = dcIpVersion;
 
             session = Session.TryLoadOrCreateNew(store, sessionUserId);
-            transport = new TcpTransport (session.DataCenter.Address, session.DataCenter.Port, this.handler);
+            transport = new TcpTransport(session.DataCenter.Address, session.DataCenter.Port, this.handler);
         }
 
         public async Task ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
@@ -134,8 +134,8 @@ namespace TLSharp.Core
             }
             else
                 dc = dcs.First();
-            
-            var dataCenter = new DataCenter (dcId, dc.IpAddress, dc.Port);
+
+            var dataCenter = new DataCenter(dcId, dc.IpAddress, dc.Port);
 
             transport = new TcpTransport(dc.IpAddress, dc.Port, handler);
             session.DataCenter = dataCenter;
@@ -156,7 +156,7 @@ namespace TLSharp.Core
                 throw new InvalidOperationException("Not connected!");
 
             var completed = false;
-            while(!completed)
+            while (!completed)
             {
                 try
                 {
@@ -164,7 +164,7 @@ namespace TLSharp.Core
                     await sender.Receive(request, token).ConfigureAwait(false);
                     completed = true;
                 }
-                catch(DataCenterMigrationException e)
+                catch (DataCenterMigrationException e)
                 {
                     if (session.DataCenter.DataCenterId.HasValue &&
                         session.DataCenter.DataCenterId.Value == e.DC)
@@ -218,7 +218,7 @@ namespace TLSharp.Core
 
             if (String.IsNullOrWhiteSpace(code))
                 throw new ArgumentNullException(nameof(code));
-            
+
             var request = new TLRequestSignIn() { PhoneNumber = phoneNumber, PhoneCodeHash = phoneCodeHash, PhoneCode = code };
 
             await RequestWithDcMigration(request, token).ConfigureAwait(false);
@@ -227,7 +227,7 @@ namespace TLSharp.Core
 
             return ((TLUser)request.Response.User);
         }
-        
+
         public async Task<TLPassword> GetPasswordSetting(CancellationToken token = default(CancellationToken))
         {
             var request = new TLRequestGetPassword();
@@ -259,7 +259,7 @@ namespace TLSharp.Core
         public async Task<TLUser> SignUpAsync(string phoneNumber, string phoneCodeHash, string code, string firstName, string lastName, CancellationToken token = default(CancellationToken))
         {
             var request = new TLRequestSignUp() { PhoneNumber = phoneNumber, PhoneCode = code, PhoneCodeHash = phoneCodeHash, FirstName = firstName, LastName = lastName };
-            
+
             await RequestWithDcMigration(request, token).ConfigureAwait(false);
 
             OnUserAuthenticated((TLUser)request.Response.User);
@@ -276,7 +276,7 @@ namespace TLSharp.Core
             return (T)result;
         }
 
-        internal async Task<T> SendAuthenticatedRequestAsync<T> (TLMethod methodToExecute, CancellationToken token = default(CancellationToken))
+        internal async Task<T> SendAuthenticatedRequestAsync<T>(TLMethod methodToExecute, CancellationToken token = default(CancellationToken))
         {
             if (!IsUserAuthorized())
                 throw new InvalidOperationException("Authorize user first!");
@@ -293,11 +293,48 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
-        public async Task<TLUser> ChannelsDeleteMessageAsync(TLAbsInputChannel peer, TLVector<int> messageId, CancellationToken token = default(CancellationToken))
+
+
+        public async Task<TeleSharp.TL.Messages.TLChatFull> Messages_getFullChat(long chatId, CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Messages.TLRequestGetFullChat { ChatId = (int)chatId };
+
+            return await SendAuthenticatedRequestAsync<TeleSharp.TL.Messages.TLChatFull>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<bool> ChannelsUpdateUsername(int channelID, long? accessHash, string to, CancellationToken token = default(CancellationToken))
+        {
+            TLAbsInputChannel channel = null;
+
+            if (accessHash != null)
+            {
+                channel = new TLInputChannel()
+                {
+                    ChannelId = channelID,
+                    AccessHash = accessHash.Value
+                };
+            }
+            else
+            {
+                channel = new TLInputChannel()
+                {
+                    ChannelId = channelID
+                };
+            }
+
+            
+            var req = new TeleSharp.TL.Channels.TLRequestUpdateUsername { Username = to, Channel = channel};
+
+            return await SendAuthenticatedRequestAsync<bool>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<TLAffectedMessages> ChannelsDeleteMessageAsync(TLAbsInputChannel peer, TLVector<int> messageId, CancellationToken token = default(CancellationToken))
         {
             var req = new TeleSharp.TL.Channels.TLRequestDeleteMessages {  Channel = peer, Id = messageId };
 
-            return await SendAuthenticatedRequestAsync<TLUser>(req, token)
+            return await SendAuthenticatedRequestAsync<TLAffectedMessages>(req, token)
                 .ConfigureAwait(false);
         }
 
@@ -314,6 +351,42 @@ namespace TLSharp.Core
             var req = new TeleSharp.TL.Account.TLRequestCheckUsername { Username = username };
 
             return await SendAuthenticatedRequestAsync<bool>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<TLAbsUpdates> ChannelsInviteToChannel(TLAbsInputChannel channel, TLVector<TLAbsInputUser> users, CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Channels.TLRequestInviteToChannel { Channel = channel, Users = users };
+
+            return await SendAuthenticatedRequestAsync<TLAbsUpdates>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<TLAbsUpdates> ChannelsEditAdmin(TLAbsInputChannel channel, 
+            TLAbsInputUser userId, TLAbsChannelParticipantRole role,
+            CancellationToken token = default(CancellationToken))
+        {
+            var req = new TLRequestEditAdmin {  Channel = channel, UserId = userId, Role = role };
+
+            return await SendAuthenticatedRequestAsync<TLAbsUpdates>(req, token)
+                       .ConfigureAwait(false);
+        }
+
+        public async Task<bool> Messages_EditChatAdmin(long chatId,
+            TLAbsInputUser user, bool isAdmin,
+            CancellationToken token = default(CancellationToken))
+        {
+            var req = new TLRequestEditChatAdmin {  ChatId = (int)chatId, UserId= user, IsAdmin = isAdmin };
+
+            return await SendAuthenticatedRequestAsync<bool>(req, token)
+                       .ConfigureAwait(false);
+        }
+
+        public async Task<TeleSharp.TL.Messages.TLChatFull> getFullChat(TLAbsInputChannel channel, CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Channels.TLRequestGetFullChannel {  Channel = channel};
+
+            return await SendAuthenticatedRequestAsync<TeleSharp.TL.Messages.TLChatFull>(req, token)
                 .ConfigureAwait(false);
         }
 
