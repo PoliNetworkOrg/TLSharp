@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TeleSharp.TL;
+
 namespace TeleSharp.TL
 {
     [TLObject(771925524)]
@@ -52,6 +53,21 @@ namespace TeleSharp.TL
             ObjectUtils.SerializeObject(ExportedInvite, bw);
             ObjectUtils.SerializeObject(BotInfo, bw);
 
+        }
+
+        public static explicit operator TLChatFull(Messages.TLChatFull v)
+        {
+            try
+            {
+                var d = (TLChatFull)v.FullChat;
+                return d;
+            }
+            catch
+            {
+                ;
+            }
+
+            return null;
         }
     }
 }

@@ -69,6 +69,7 @@ namespace TLSharp.Core
             transport = new TcpTransport(session.DataCenter.Address, session.DataCenter.Port, this.handler);
         }
 
+
         public async Task ConnectAsync(bool reconnect = false, CancellationToken token = default(CancellationToken))
         {
             token.ThrowIfCancellationRequested();
@@ -150,6 +151,7 @@ namespace TLSharp.Core
             }
         }
 
+      
         private async Task RequestWithDcMigration(TLMethod request, CancellationToken token = default(CancellationToken))
         {
             if (sender == null)
@@ -237,6 +239,10 @@ namespace TLSharp.Core
             return (TLPassword)request.Response;
         }
 
+ 
+
+
+
         public async Task<TLUser> MakeAuthWithPasswordAsync(TLPassword password, string password_str, CancellationToken token = default(CancellationToken))
         {
             token.ThrowIfCancellationRequested();
@@ -284,6 +290,7 @@ namespace TLSharp.Core
             return await SendRequestAsync<T>(methodToExecute, token)
                 .ConfigureAwait(false);
         }
+
 
         public async Task<TLUser> AccountUpdateUsernameAsync(string username, CancellationToken token = default(CancellationToken))
         {
@@ -382,11 +389,26 @@ namespace TLSharp.Core
                        .ConfigureAwait(false);
         }
 
+        public async Task<TLAffectedMessages> Messages_DeleteMessages(bool revoke, TLVector<int> tLVector, CancellationToken token = default(CancellationToken))
+        {
+            var request = new TeleSharp.TL.Messages.TLRequestDeleteMessages() { Revoke = true, Id = tLVector };
+
+            return await SendAuthenticatedRequestAsync<TLAffectedMessages>(request, token).ConfigureAwait(false);
+        }
+
         public async Task<TeleSharp.TL.Messages.TLChatFull> getFullChat(TLAbsInputChannel channel, CancellationToken token = default(CancellationToken))
         {
             var req = new TeleSharp.TL.Channels.TLRequestGetFullChannel {  Channel = channel};
 
             return await SendAuthenticatedRequestAsync<TeleSharp.TL.Messages.TLChatFull>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<TLChats> Messages_GetAllChats(CancellationToken token = default(CancellationToken))
+        {
+            var req = new TeleSharp.TL.Messages.TLRequestGetAllChats() { ExceptIds = new TLVector<int>() { } };
+
+            return await SendAuthenticatedRequestAsync<TLChats>(req, token)
                 .ConfigureAwait(false);
         }
 
