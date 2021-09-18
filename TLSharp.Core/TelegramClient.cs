@@ -353,6 +353,35 @@ namespace TLSharp.Core
                 .ConfigureAwait(false);
         }
 
+        public async Task<TLAbsUpdates> UpgradeGroupIntoSupergroup(long? groupId, CancellationToken token = default(CancellationToken))
+        {
+            if (groupId == null)
+                return null;
+
+            var req = new TeleSharp.TL.Messages.TLRequestMigrateChat() { ChatId = Convert.ToInt32( groupId.Value) };
+
+            return await SendAuthenticatedRequestAsync<TLAbsUpdates>(req, token)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<bool?> Channels_EditDescription(TLChannel tLChannel, string desc, CancellationToken token = default(CancellationToken))
+        {
+            if (tLChannel == null)
+                return null;
+
+
+            TLInputPeerChannel peer2 = new TLInputPeerChannel() { ChannelId = tLChannel.Id };
+            if (tLChannel.AccessHash != null)
+            {
+                peer2.AccessHash = tLChannel.AccessHash.Value;
+            }
+            var req = new TeleSharp.TL.Messages.TLRequestEditChatAbout() { peer = peer2, about = desc};
+
+
+            return await SendAuthenticatedRequestAsync<bool>(req, token)
+                .ConfigureAwait(false);
+        }
+
         public async Task<bool> AccountCheckUsernameAsync(string username, CancellationToken token = default(CancellationToken))
         {
             var req = new TeleSharp.TL.Account.TLRequestCheckUsername { Username = username };
